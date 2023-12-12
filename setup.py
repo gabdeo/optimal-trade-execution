@@ -10,11 +10,18 @@ setup(
     license="",
     packages=find_packages(),
     install_requires=[
+        'numpy',
+        'pandas',
+        'openpyxl',
+        'scipy',
+        'matplotlib',
+        'sympy',
         "numpy",
         "pandas",
         "scipy",
         "matplotlib",
         "sympy",
         "plotly",
+        'yfinance'
     ],
 )
