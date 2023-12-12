@@ -26,8 +26,8 @@ class Trader:
         total_cost = 0
         for t in range(T):
             for s in range(T):
-                min_term = min(s, t)
-                sqrt_term = (q[s] * q[t]) / (v[s] * v[t])
+                min_term = min(s, t) + 1
+                sqrt_term = ((q[s] * q[t]) / (v[s] * v[t])) ** (1 / 2)
                 total_cost += q[s] * q[t] * (min_term + self.alpha**2 * sqrt_term)
         return total_cost
 
@@ -51,10 +51,12 @@ class Trader:
         t_indices, s_indices = np.meshgrid(range(T), range(T), indexing="ij")
 
         # Calculate the min term using NumPy minimum for element-wise comparison
-        min_terms = np.minimum(s_indices, t_indices)
+        min_terms = np.minimum(s_indices, t_indices) + 1
 
         # Calculate the sqrt term using NumPy broadcasting
-        sqrt_terms = (q[s_indices] * q[t_indices]) / (v[s_indices] * v[t_indices])
+        sqrt_terms = (
+            (q[s_indices] * q[t_indices]) / (v[s_indices] * v[t_indices])
+        ) ** (1 / 2)
 
         # Calculate the total cost using NumPy operations for the entire matrix
         total_cost = np.sum(
@@ -62,12 +64,3 @@ class Trader:
         )
 
         return total_cost
-
-
-q = list(range(10))
-v = [1, 2] * 5
-alpha = 0.1
-trader = Trader(alpha)
-trader.cost(q, v)
-
-trader.veccost(q, v)
