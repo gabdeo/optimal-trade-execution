@@ -26,5 +26,5 @@ def check_convexity(n):
 
 
 if __name__ == '__main__':
-    check_convexity(13)
+    check_convexity(3)
     exit(1)
