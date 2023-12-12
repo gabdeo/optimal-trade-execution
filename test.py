@@ -1,31 +1,21 @@
+# test.py
 import numpy as np
-from sympy import symbols, sqrt, hessian, Matrix
-
-def objective(x, c):
-    return sum(x[s] * x[t] * (min(s+1, t+1) + sqrt(x[s] * x[t]) * c[s] * c[t]) 
-               for s in range(len(x)) 
-               for t in range(len(x))
-            )
-
-def check_convexity(n):
-
-    x = symbols('x1:%d' % (n+1))
-    c = symbols('c1:%d' % (n+1))
-    func = objective(x, c)
-
-    # Compute the Hessian matrix
-    H = hessian(func, x)
-
-    # Check if the Hessian matrix is positive semi-definite
-    # (i.e. all eigenvalues are non-negative)
-    eigenvalues = H.eigenvals()
-    if np.all(eigenvalues >= 0):
-        return True
-    
-    return False
+import pytest
+from Optimization.trading import Trader
 
 
-if __name__ == '__main__':
-    check_convexity(13)
-    exit(1)
+def test_cost_functions():
+    # Test parameters
+    alpha = 0.01
+    q = np.array([10, 20, 30, 40, 50])  # Example quantities
+    v = np.array([1000, 2000, 3000, 4000, 5000])  # Example volumes
 
+    # Initialize the Trader instance
+    trader = Trader(alpha)
+
+    # Calculate costs using both methods
+    cost = trader.cost(q, v)
+    veccost = trader.veccost(q, v)
+
+    # Assert that both methods yield the same result infinitesimal tolerance
+    np.testing.assert_almost_equal(cost, veccost, decimal=10)
