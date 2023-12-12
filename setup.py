@@ -12,6 +12,7 @@ setup(
     install_requires=[
         'numpy',
         'pandas',
+        'openpyxl',
         'scipy',
         'matplotlib',
         'sympy',
