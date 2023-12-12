@@ -1,0 +1,80 @@
+import numpy as np
+
+
+class DataGenerator:
+    def __init__(self, config):
+        """
+        Initialize the DataGenerator with simulation parameters provided in a dictionary.
+
+        :param config: A dictionary with the following structure:
+                       {
+                           'T': int,
+                           'volume': {'max': float, 'min': float, 'generation_type': str},
+                           'quantity': {'max': float, 'min': float, 'generation_type': str},
+                           'prices': {'vol': float, 'sensi': float, 'P0': float}
+                       }
+        The 'prices' configuration is optional and has a default value for 'P0'.
+        """
+        self.T = config.get("T", None)
+        self.volume_config = config.get("volume", None)
+        self.quantity_config = config.get("quantity", None)
+        self.prices_config = config.get(
+            "prices", {"vol": None, "sensi": None, "P0": 1.0}
+        )  # Default P0
+
+    def generate_volumes(self):
+        if self.volume_config:
+            if self.volume_config["generation_type"] == "random":
+                return np.random.uniform(
+                    self.volume_config["min"], self.volume_config["max"], size=self.T
+                )
+            elif self.volume_config["generation_type"] == "equal":
+                return np.full(
+                    self.T, (self.volume_config["max"] + self.volume_config["min"]) / 2
+                )
+        return None
+
+    def generate_quantities(self):
+        if self.quantity_config:
+            if self.quantity_config["generation_type"] == "random":
+                return np.random.uniform(
+                    self.quantity_config["min"],
+                    self.quantity_config["max"],
+                    size=self.T,
+                )
+            elif self.quantity_config["generation_type"] == "equal":
+                return np.full(
+                    self.T,
+                    (self.quantity_config["max"] + self.quantity_config["min"]) / 2,
+                )
+        return None
+
+    def generate_prices(self):
+        if self.prices_config["vol"] and self.prices_config["sensi"]:
+            P0 = self.prices_config["P0"]
+            vol = self.prices_config["vol"]
+            sensi = self.prices_config["sensi"]
+            prices = [P0]
+            for t in range(1, self.T):
+                zt = np.random.normal(0, 1)  # z_t ~ N(0, 1)
+                qt = np.random.uniform(
+                    self.quantity_config["min"], self.quantity_config["max"]
+                )
+                vt = np.random.uniform(
+                    self.volume_config["min"], self.volume_config["max"]
+                )
+                pt = sensi * np.sqrt(qt / vt) + vol * zt + prices[-1]
+                prices.append(pt)
+            return np.array(prices)
+        return None
+
+    def generate_data(self):
+        """
+        Generate quantities, volumes, and prices as configured.
+
+        :return: A tuple of numpy arrays or None, for quantities, volumes, and prices.
+        """
+        quantities = self.generate_quantities()
+        volumes = self.generate_volumes()
+        prices = self.generate_prices()
+        return quantities, volumes, prices

@@ -50,3 +50,42 @@ class Visualizer:
             scene=dict(xaxis_title="q1", yaxis_title="q2", zaxis_title="Cost"),
         )
         fig.show()
+
+
+if __name__ == "__main__":
+    from Optimization.trading import Trader
+    from Data.datagenerator import DataGenerator
+
+    # Configuration for data generation
+    config = {
+        "T": 2,  # Number of time periods
+        "volume": {"max": 2000, "min": 500, "generation_type": "random"},
+        "quantity": {"max": 100, "min": 10, "generation_type": "equal"},
+    }
+
+    # Instantiate the DataGenerator
+    data_generator = DataGenerator(config)
+
+    # Generate quantities and volumes
+    q, v = data_generator.generate_data()
+
+    # Trader parameters
+    alpha = 0.01  # Price sensitivity
+
+    # Instantiate the Trader object
+    trader = Trader(alpha, config["T"])
+
+    # For visualization, create a range or grid of q values as needed
+    # If T == 1, create a 1D array of q values; if T == 2, create a 2D grid of q values
+    # ...
+
+    # Instantiate the Visualization object
+    visualization = Visualization(trader, v)
+
+    # Call the appropriate plotting methods
+    if config["T"] == 1:
+        visualization.plot_sum_q_vs_cost(q)
+    elif config["T"] == 2:
+        visualization.plot_3d_cost(q)
+    else:
+        print("Visualization for T > 2 is not implemented.")
