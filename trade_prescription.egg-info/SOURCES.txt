@@ -1,0 +1,8 @@
+LICENSE
+README.md
+setup.py
+trade_prescription.egg-info/PKG-INFO
+trade_prescription.egg-info/SOURCES.txt
+trade_prescription.egg-info/dependency_links.txt
+trade_prescription.egg-info/requires.txt
+trade_prescription.egg-info/top_level.txt
