@@ -1,52 +1,26 @@
-import cvxpy as cp
+import numpy as np
+import pandas as pd
 from Optimization.trading import Trader
 
+df = pd.read_csv("Data\predictions\preds.csv")
 
-class Optimizer:
-    def __init__(self):
-        self.problem = None
-        self.vars = None
+from Optimization.optimizer import Optimizer
 
-    def optimize(self, T, Q, objective_function):
-        """
-        Sets up the optimization problem and run it.
-        :param T: Time horizon (number of variables).
-        :param Q: Total quantity to be optimized.
-        """
-        # Define variables - non-negative and continuous
-        self.vars = cp.Variable(T, nonneg=True)
-
-        # Define the constraint - the sum of all variables should be equal to Q
-        constraints = [cp.sum(self.vars) == Q]
-
-        # Define the objective
-        objective = cp.Minimize(objective_function(self.vars))
-        self.problem = cp.Problem(objective, constraints)
-        self.problem.solve()
-
-    def get_results(self):
-        """
-        Returns the optimization results.
-        :return: Optimal values of variables and the optimal objective value.
-        """
-        optimal_vars = self.vars.value
-        optimal_value = self.problem.value
-        return optimal_vars, optimal_value
-
-    def summary(self):
-        """
-        Prints a summary of the optimization results.
-        """
-        optimal_vars, optimal_value = self.get_results()
-        print("Optimal Value:", optimal_value)
-        print("Optimal Variable Values:", optimal_vars)
-
-
-if __name__ == "__main__":
-    T = 10
-    Q = 100000
-    v = [1] * T
-    trader = Trader(alpha=0.1, sigma=1.0)
-    f = lambda x: trader.model_veccost(x, v)
+dates = df["Date"].unique()
+tickers = df["Ticker"].unique()
+targets = list(df.columns)[:2]
+T = 7
+Q = 50000
+trader = Trader(alpha=0.1, sigma=1)
+for k in range(1, 8):
+    df[f"Prescip_{k}"] = 0.0
+for i, row in df.head().iterrows():
+    ticker = row[0]
+    date = row[1]
+    log_volumes = np.array(row[2:])
+    f = lambda x: trader.model_veccost(x, np.exp(log_volumes))
     optimizer = Optimizer()
-    optimizer.optimize(T, Q, f)
+    result = optimizer.optimize(Q, f)
+    print("opti done")
+    for k in range(1, 8):
+        df[f"Prescip_{k}"][i] = result.x[k - 1]
