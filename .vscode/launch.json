@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "cwd": ".",
+            "name": "Python: Current file",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+    ]
+}

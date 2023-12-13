@@ -3,24 +3,23 @@ import numpy as np
 
 
 class Visualizer:
-    def __init__(self, trader, v):
+    def __init__(self, trader):
         """
         Initialize the Visualization with a trader instance and a fixed volume vector.
 
         :param trader: An instance of the Trader class.
-        :param v: A fixed volume vector to be used in visualizations.
         """
         self.trader = trader
-        self.v = v
 
-    def plot_sum_q_vs_cost(self, q_range):
+    def plot_sum_q_vs_cost(self, q_range, v_range):
         """
         Plot the cost against the sum of q using a 2D plot.
 
-        :param q_range: A range of values for q to generate the plot.
+        :param q_range: A range of vectors for quantities q.
+        :param v_range: A range of vectors for volumes v.
         """
         sum_q = np.sum(q_range, axis=1)
-        costs = np.array([self.trader.cost(q, self.v) for q in q_range])
+        costs = np.array([self.trader.cost(q, v) for (q, v) in zip(q_range, v_range)])
 
         fig = go.Figure(data=[go.Scatter(x=sum_q, y=costs, mode="lines+markers")])
         fig.update_layout(
@@ -28,26 +27,34 @@ class Visualizer:
         )
         fig.show()
 
-    def plot_3d_cost(self, q_range):
+    def plot_surface_cost(self, q_range, v):
         """
-        Plot the cost in 3D when q has two dimensions.
+        Compute costs for all combinations of q1 and q2 and plot a surface.
 
-        :param q_range: A range of values for q to generate the plot.
+        :param q_range: A range of vectors for quantities q.
+        :param v: A vector of volumes.
         """
-        # Ensure that q_range is appropriate for a 3D plot
-        if q_range.shape[1] != 2:
-            raise ValueError("Dimension of q must be 2 for a 3D plot.")
+        q1_range, q2_range = q_range[:, 0], q_range[:, 1]
+        q1, q2 = np.meshgrid(q1_range, q2_range)
+        costs = np.zeros_like(q1)
 
-        q1 = q_range[:, 0]
-        q2 = q_range[:, 1]
-        costs = np.array([self.trader.cost(q, self.v) for q in q_range])
+        for i in range(q1.shape[0]):
+            for j in range(q1.shape[1]):
+                q = np.array([q1[i, j], q2[i, j]])
+                costs[i, j] = self.trader.cost(q, v)
 
-        fig = go.Figure(
-            data=[go.Mesh3d(x=q1, y=q2, z=costs, color="blue", opacity=0.50)]
-        )
+        # Now use plotly to create the surface plot
+        import plotly.graph_objects as go
+
+        fig = go.Figure(data=[go.Surface(z=costs, x=q1_range, y=q2_range)])
         fig.update_layout(
-            title="3D Plot of Cost",
-            scene=dict(xaxis_title="q1", yaxis_title="q2", zaxis_title="Cost"),
+            title="Cost Surface",
+            xaxis_title="q1",
+            yaxis_title="q1",
+            autosize=False,
+            width=500,
+            height=500,
+            margin=dict(l=65, r=50, b=65, t=90),
         )
         fig.show()
 
@@ -59,33 +66,33 @@ if __name__ == "__main__":
     # Configuration for data generation
     config = {
         "T": 2,  # Number of time periods
-        "volume": {"max": 2000, "min": 500, "generation_type": "random"},
-        "quantity": {"max": 100, "min": 10, "generation_type": "equal"},
+        "volume": {"max": 100000, "min": 100000, "generation_type": "equal"},
+        "quantity": {"max": 1000, "min": 0, "generation_type": "visu"},
     }
 
     # Instantiate the DataGenerator
-    data_generator = DataGenerator(config)
+    data_generator = DataGenerator(config, n_samples=1000)
 
     # Generate quantities and volumes
-    q, v = data_generator.generate_data()
+    q, v, _ = data_generator.generate_data()
 
     # Trader parameters
     alpha = 0.01  # Price sensitivity
 
     # Instantiate the Trader object
-    trader = Trader(alpha, config["T"])
+    trader = Trader(alpha)
 
     # For visualization, create a range or grid of q values as needed
     # If T == 1, create a 1D array of q values; if T == 2, create a 2D grid of q values
     # ...
 
     # Instantiate the Visualization object
-    visualization = Visualization(trader, v)
+    visu = Visualizer(trader)
 
     # Call the appropriate plotting methods
     if config["T"] == 1:
-        visualization.plot_sum_q_vs_cost(q)
+        visu.plot_sum_q_vs_cost(q, v)
     elif config["T"] == 2:
-        visualization.plot_3d_cost(q)
+        visu.plot_surface_cost(q, v[0])
     else:
         print("Visualization for T > 2 is not implemented.")
