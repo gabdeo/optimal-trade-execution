@@ -14,15 +14,15 @@ def test_cost_functions():
     trader = Trader(alpha)
 
     # Calculate costs using both methods
-    cost = trader.cost(q, v)
-    veccost = trader.veccost(q, v)
+    cost = trader.model_cost(q, v)
+    veccost = trader.model_veccost(q, v)
 
     # Assert that both methods yield the same result infinitesimal tolerance
     np.testing.assert_almost_equal(cost, veccost, decimal=10)
 
     # Calculate simpled costs using both methods
-    cost = trader.simple_cost(q, v)
-    veccost = trader.simple_veccost(q, v)
+    cost = trader.model_simple_cost(q, v)
+    veccost = trader.model_simple_veccost(q, v)
 
     # Assert that both methods yield the same result infinitesimal tolerance
     np.testing.assert_almost_equal(cost, veccost, decimal=10)

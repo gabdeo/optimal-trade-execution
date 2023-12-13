@@ -1,3 +1,8 @@
+from gurobipy import Model, GRB, quicksum
+
+from Optimization.trading import Trader
+
+
 class Optimizer:
     def __init__(self):
         self.model = Model("Optimization Model")
@@ -52,6 +57,56 @@ class Optimizer:
         print("Optimal Variable Values:")
         for var_name, value in optimal_vars.items():
             print(f"{var_name}: {value}")
+
+    def optimize_function(self, f, trader, T):
+        """
+        Optimizes the function `f`.
+        :param f: The function to be optimized.
+        :param trader: An instance of the Trader class.
+        :param T: Time horizon.
+        """
+        # Define variables - non-negative and continuous
+        variables = [
+            ("q{}".format(t), 0, GRB.INFINITY, GRB.CONTINUOUS) for t in range(T)
+        ]
+
+        # Adding variables to the model
+        for var_name, lb, ub, var_type in variables:
+            self.vars[var_name] = self.model.addVar(
+                lb=lb, ub=ub, vtype=var_type, name=var_name
+            )
+
+        # Update the model to integrate new variables
+        self.model.update()
+
+        # Define the constraint - the sum of all q variables should be equal to Q
+        constraint_expr = quicksum(self.vars["q{}".format(t)] for t in range(T))
+        constraints = [(constraint_expr, GRB.EQUAL, Q)]
+
+        # Define the objective function using `f`
+        objective = f([variables["q{}".format(t)] for t in range(T)], trader)
+
+        # Setup and optimize the model
+        self.setup(variables, constraints, objective, GRB.MINIMIZE)
+        self.optimize()
+
+
+if __name__ == "__main__":
+    T = 10
+    Q = 100000
+    v = [1] * T
+    trader = Trader(alpha=0.1, sigma=1)
+    f = lambda x: trader.model_veccost(x, v)
+    # Define variables - non-negative and continuous
+    variables = [("q{}".format(t), 0, GRB.INFINITY, GRB.CONTINUOUS) for t in range(T)]
+
+    # Define constraints
+    # The sum of all q variables should be equal to Q
+    # constraints = [(quicksum(q[t] for t in range(T)) == Q, GRB.EQUAL, Q)]
+
+    optimizer = Optimizer()
+    optimizer.optimize_function(f, trader, T)
+    optimizer.summary()
 
 
 # Example usage:
