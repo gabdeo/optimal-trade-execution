@@ -4,42 +4,42 @@ import matplotlib.pyplot as plt
 from Optimization.trading import Trader
 from tqdm import tqdm
 
-df = pd.read_csv(
-    "Data\predictions\preds.csv",
-    index_col=[0, 1],
-    parse_dates=["Date"],
-    date_format="%Y-%m-%d %H:%M:%S",
-)
+# df = pd.read_csv(
+#     "Data\predictions\preds.csv",
+#     index_col=[0, 1],
+#     parse_dates=["Date"],
+#     date_format="%Y-%m-%d %H:%M:%S",
+# )
 
-from Optimization.optimizer import Optimizer
+# from Optimization.optimizer import Optimizer
 
-# dates = df["Date"].unique()
-# tickers = df["Ticker"].unique()
-targets = list(df.columns)[:2]
-T = 7
-Q = 50000 * T
-trader = Trader(alpha=0.1, sigma=1)
-results = pd.DataFrame(columns=[f"Prescip_{k}" for k in range(1, 8)], index=df.index)
+# # dates = df["Date"].unique()
+# # tickers = df["Ticker"].unique()
+# targets = list(df.columns)[:2]
+# T = 7
+# Q = 50000 * T
+# trader = Trader(alpha=0.1, sigma=1)
+# results = pd.DataFrame(columns=[f"Prescip_{k}" for k in range(1, 8)], index=df.index)
 
-# for k in range(1, 8):
-#     df[f"Prescip_{k}"] = 0.0
-for  idx, row in tqdm(df.iterrows(), total=len(df)):
-    # ticker = row[0]
-    # date = row[1]
-    log_volumes = np.array(row, dtype=float)
-    f = lambda x: trader.model_veccost(x, np.exp(log_volumes))
-    optimizer = Optimizer()
-    result = optimizer.optimize(Q, T, f)
-    # print("opti done")
-    results.loc[idx, :] = result.x
-    # for k in range(1, 8):
-    #     df[f"Prescip_{k}"][i] = result.x[k - 1]
+# # for k in range(1, 8):
+# #     df[f"Prescip_{k}"] = 0.0
+# for  idx, row in tqdm(df.iterrows(), total=len(df)):
+#     # ticker = row[0]
+#     # date = row[1]
+#     log_volumes = np.array(row, dtype=float)
+#     f = lambda x: trader.model_veccost(x, np.exp(log_volumes))
+#     optimizer = Optimizer()
+#     result = optimizer.optimize(Q, T, f)
+#     # print("opti done")
+#     results.loc[idx, :] = result.x
+#     # for k in range(1, 8):
+#     #     df[f"Prescip_{k}"][i] = result.x[k - 1]
 
 df_prices = pd.read_csv('Data/tables/snp500.csv',
                         parse_dates=['Date'], 
                         index_col=[0, 1])
 prices = df_prices[['Open', 'Volume']]
-results = pd.read_csv('reg_prescriptions.csv', parse_dates=['Date'], index_col=[0, 1])
+results = pd.read_csv('Data/prescriptions/reg_prescriptions_30pct.csv', parse_dates=['Date'], index_col=[0, 1])
 
 # Extracting date and time components
 new_index = [(ticker, datetime.date(), datetime.time()) for ticker, datetime in prices.index]
@@ -73,4 +73,6 @@ costs = trader.real_cost(quantities.values, prices.values, volumes.values)
 shape = quantities.shape
 benchmark_quantities = np.full(shape, fill_value=Q/shape[1])
 benchmark_costs = trader.real_cost(benchmark_quantities, prices.values, volumes.values)
-df_costs = pd.concat([pd.DataFrame(costs, columns=['Strategy Cost'], index=prices.index), pd.DataFrame(costs, columns=['Benchmark Cost'], index=prices.index)] 
+df_costs = pd.concat([pd.DataFrame(costs, columns=['Strategy Cost'], index=prices.index), pd.DataFrame(costs, columns=['Benchmark Cost'], index=prices.index)]) 
+
+exit(1)
