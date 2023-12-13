@@ -14,14 +14,15 @@ class DataLoader():
         self.interval = interval
         self.date_format = date_fromat
 
-    def load_data(self, local_path = None, metrics = ['Open', 'Returns', 'Volume', 'Dividends', 'Stock Splits'], preprocess = True):
+    def load_data(self, local_path = None, metrics = None, preprocess = True):
 
         if local_path is not None:
-            data = pd.read_csv(local_path, index_col=0, parse_dates=True, date_format=self.date_format, header=[0,1])
+            data = pd.read_csv(local_path, index_col=[0,1], parse_dates=["Date"], date_format='%Y-%m-%d %H:%M:%S')
 
-            if not all([m in data.columns for m in metrics]):
+            if metrics and not all([m in data.columns for m in metrics]):
                 raise ValueError("Metrics are not in the loaded data")
-            data = data[metrics]
+            if metrics:
+                data = data[metrics]
             
 
         else:
@@ -35,7 +36,9 @@ class DataLoader():
                 self.data = data
                 data = self.preprocess_data()
 
-            data = data[metrics]
+            if metrics:
+                data = data[metrics]
+
             data = data.swaplevel().sort_index() # Sort by ticker then by date
             data.index.names = ['Ticker', 'Date']
         
@@ -136,7 +139,8 @@ if __name__ == '__main__':
     
     with open('Data/tickers/snp500.txt', 'r') as f:
         tickers = f.read().splitlines()
-    tickers = tickers[:5]
+    # tickers = tickers[:5]
+
     start_date = "2022-01-01"
     end_date = "2023-12-10"
 
@@ -154,16 +158,17 @@ if __name__ == '__main__':
     # Make Sector + exchange categorical
     dataset.onehot_encode(["Sector", "Exchange"])
 
-    dataset.rolling_apply(lambda x: x.std(), window=7 * 10, on_cols=["Open"], new_names=["Volatility"], drop_col = False)
+    dataset.rolling_apply(lambda x: x.std(), window=7 * 20, on_cols=["Open"], new_names=["Volatility"], drop_col = False)
+    dataset.rolling_apply(lambda x: x.mean(), window=7 * 20, on_cols=["Volume"], new_names=["Rolling Volume"], drop_col = False)
     dataset.save_data('Data/tables/snp500.csv')
-
-    features = ["Volume", "Volatility", "^VIX"] # ADD ONEHOT ENCODINGS
+    
+    features = ["Volume", "Volatility", "^VIX", "Rolling Volume"] # ADD ONEHOT ENCODINGS
     features += [col for col in dataset.data.columns if col.startswith("Sector_") or col.startswith("Exchange_")]
     daily_features = ["Volatility", "^VIX"]
     daily_features += [col for col in dataset.data.columns if col.startswith("Sector_") or col.startswith("Exchange_")]
 
     dataset.prepare_features(features=features, target="Volume", shift_features=True, daily_features=daily_features)
-    dataset.save_data('Data/tables/snp500.csv')
+
 
     print(data)
     exit(1)

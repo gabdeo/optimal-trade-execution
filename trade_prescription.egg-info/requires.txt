@@ -1,5 +1,12 @@
 numpy
 pandas
+openpyxl
+scikit-learn
+tqdm
+matplotlib
+sympy
+numpy
+pandas
 scipy
 matplotlib
 sympy
