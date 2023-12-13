@@ -19,7 +19,7 @@ class Prescriber:
         if self.pred == "equal":
             return np.full(shape=self.T, fill_value=self.Q / self.T)
         elif self.pred == "average":
-            
+            pass
         elif self.pred == "reg":
             pass
         elif self.pred == "RF":
