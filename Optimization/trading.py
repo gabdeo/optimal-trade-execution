@@ -2,18 +2,20 @@ import numpy as np
 
 
 class Trader:
-    def __init__(self, alpha):
+    def __init__(self, alpha, sigma):
         """
         Initialize the Trader with specified parameters.
 
         :param alpha: Price sensitivity, quantifies the influence of the trade volume
                       on the asset price.
+        :param sigma: Price volatility
         """
         self.alpha = alpha
+        self.sigma = sigma
 
-    def cost(self, q, v):
+    def model_cost(self, q, v):
         """
-        Calculate the cost of the trading strategy.
+        Calculate the modelized cost of the trading strategy.
 
         :param q: List or array of quantities q_t to buy at times t.
         :param v: List or array of volumes v_t traded at times t.
@@ -31,9 +33,9 @@ class Trader:
                 total_cost += q[s] * q[t] * (min_term + self.alpha**2 * sqrt_term)
         return total_cost
 
-    def veccost(self, q, v):
+    def model_veccost(self, q, v):
         """
-        Calculate the cost based on the trading strategy using NumPy for vectorized operations.
+        Calculate the modelized cost based on the trading strategy using NumPy for vectorized operations.
 
         :param q: List of NumPy array of quantities q_t to buy at times t.
         :param v: List or NumPy array of volumes v_t traded at times t.
@@ -64,3 +66,36 @@ class Trader:
         )
 
         return total_cost
+
+    def model_simple_cost(self, q, v):
+        """
+        Calculate a simplified version of the cost of the trading strategy.
+
+        :param q: List or array of quantities q_t to buy at times t.
+        :param v: List or array of volumes v_t traded at times t.
+        :return: Total trading cost for the buying of the asset.
+        """
+        if len(q) != len(v):
+            raise ValueError("The lengths of quantities and volumes must be equal.")
+
+        T = len(q)
+        total_cost = 0
+        for t in range(T):
+            sum_term = self.alpha**2 * q[t] ** 3 / v[t] + (t + 1) * q[t] ** 2
+            total_cost += self.sigma**2 * sum_term
+        return total_cost
+
+    def real_cost(self, q, p):
+        """
+        Calculate the real cost of the trading strategy.
+
+        :param q: List or array of quantities q_t to buy at times t.
+        :param p: List or array of prices p_t at times t.
+        :return: Total trading cost for the buying of the asset.
+        """
+        if isinstance(q, list):
+            q = np.array(q)
+        if isinstance(p, list):
+            p = np.array(p)
+
+        return (p[0] - np.sum(p * q) / np.sum(q)) ** 2

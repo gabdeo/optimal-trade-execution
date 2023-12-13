@@ -67,11 +67,11 @@ if __name__ == "__main__":
     config = {
         "T": 2,  # Number of time periods
         "volume": {"max": 100000, "min": 100000, "generation_type": "equal"},
-        "quantity": {"max": 1000, "min": 0, "generation_type": "visu"},
+        "quantity": {"max": 10000, "min": 0, "generation_type": "visu"},
     }
 
     # Instantiate the DataGenerator
-    data_generator = DataGenerator(config, n_samples=1000)
+    data_generator = DataGenerator(config, n_samples=100)
 
     # Generate quantities and volumes
     q, v, _ = data_generator.generate_data()
