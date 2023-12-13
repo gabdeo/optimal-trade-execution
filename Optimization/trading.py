@@ -86,7 +86,7 @@ class Trader:
             total_cost += self.sigma**2 * sum_term
         return total_cost
 
-    def real_cost(self, q, p):
+    def real_cost(self, q, p, v):
         """
         Calculate the real cost of the trading strategy.
 
@@ -98,5 +98,9 @@ class Trader:
             q = np.array(q)
         if isinstance(p, list):
             p = np.array(p)
+        if isinstance(v, list):
+            v = np.array(v)
 
-        return (p[0] - np.sum(p * q) / np.sum(q)) ** 2
+        elastic_p = p + self.alpha * np.sqrt(q / v)
+
+        return (p[:, 0] - np.sum(elastic_p * q, axis=1) / np.sum(q, axis=1)) ** 2
