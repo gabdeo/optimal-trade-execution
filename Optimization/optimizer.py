@@ -8,7 +8,7 @@ class Optimizer:
     def __init__(self):
         self.vars = {}
 
-    def optimize(self, Q, objective):
+    def optimize(self, Q, T, objective):
         """
         Sets up the optimization problem by adding variables, constraints, and defining the objective function.
         :param variables: List of tuples in the form (name, lb, ub, var_type).
@@ -18,6 +18,7 @@ class Optimizer:
         """
 
         # Add constraints
+        # T = len(v)
         constraint = {"type": "eq", "fun": lambda q: np.sum(q) - Q}
         bounds = [(0, None) for _ in range(T)]
         initial_guess = np.ones(T) * (Q / T)
@@ -57,7 +58,7 @@ if __name__ == "__main__":
     f = lambda x: trader.model_veccost(x, v)
 
     optimizer = Optimizer()
-    result = optimizer.optimize(Q, f)
+    result = optimizer.optimize(Q, T, f)
 
 
 # Example usage:
