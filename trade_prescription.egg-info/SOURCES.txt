@@ -4,8 +4,11 @@ setup.py
 Data/__init__.py
 Data/datagenerator.py
 Data/dataloader.py
+Models/__init__.py
+Models/neural_net.py
 Optimization/__init__.py
 Optimization/optimizer.py
+Optimization/prescriber.py
 Optimization/test.py
 Optimization/trading.py
 trade_prescription.egg-info/PKG-INFO
