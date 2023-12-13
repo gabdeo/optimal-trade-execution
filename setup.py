@@ -13,6 +13,7 @@ setup(
         'numpy',
         'pandas',
         'openpyxl',
+        'gurobipy',
         'scikit-learn',
         'tqdm',
         'matplotlib',

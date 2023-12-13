@@ -1,4 +1,5 @@
 from gurobipy import Model, GRB, quicksum
+from scipy.optimize import minimize
 
 from Optimization.trading import Trader
 
@@ -6,6 +7,7 @@ from Optimization.trading import Trader
 class Optimizer:
     def __init__(self):
         self.model = Model("Optimization Model")
+        self.vars = {}
 
     def setup(self, variables, constraints, objective, sense):
         """
@@ -58,7 +60,7 @@ class Optimizer:
         for var_name, value in optimal_vars.items():
             print(f"{var_name}: {value}")
 
-    def optimize_function(self, f, trader, T):
+    def optimize_function(self, f, v, T):
         """
         Optimizes the function `f`.
         :param f: The function to be optimized.
@@ -81,13 +83,12 @@ class Optimizer:
 
         # Define the constraint - the sum of all q variables should be equal to Q
         constraint_expr = quicksum(self.vars["q{}".format(t)] for t in range(T))
-        constraints = [(constraint_expr, GRB.EQUAL, Q)]
+        self.model.addConstr(constraint_expr, GRB.EQUAL, Q)
 
         # Define the objective function using `f`
-        objective = f([variables["q{}".format(t)] for t in range(T)], trader)
+        objective = f([self.vars["q{}".format(t)] for t in range(T)])
+        self.model.setObjective(objective, GRB.MINIMIZE)
 
-        # Setup and optimize the model
-        self.setup(variables, constraints, objective, GRB.MINIMIZE)
         self.optimize()
 
 
@@ -103,7 +104,7 @@ if __name__ == "__main__":
     # Define constraints
     # The sum of all q variables should be equal to Q
     # constraints = [(quicksum(q[t] for t in range(T)) == Q, GRB.EQUAL, Q)]
-
+    
     optimizer = Optimizer()
     optimizer.optimize_function(f, trader, T)
     optimizer.summary()

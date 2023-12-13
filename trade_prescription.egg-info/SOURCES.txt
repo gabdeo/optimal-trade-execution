@@ -5,6 +5,7 @@ Data/__init__.py
 Data/datagenerator.py
 Data/dataloader.py
 Models/__init__.py
+Models/linear_reg.py
 Models/neural_net.py
 Optimization/__init__.py
 Optimization/optimizer.py
